@@ -5,6 +5,8 @@ O app contêm pontos onde a imgem da webcam pode ser interceptada em processada.
 
 Como exemplo, incluí um classificador de imagens que detecta carros.
 
+image::docs/screenshot.png[Screenshot]
+
 Utiliza:
 
 * Python 3.5

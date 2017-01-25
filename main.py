@@ -142,11 +142,12 @@ if __name__ == '__main__':
     janela_main = QMainWindow()
     minha_janela.setupUi(janela_main)
 
-    # cameraDevice = CameraDevice(mirrored=True)
-    cameraDevice = VideoDevice("data/road.mp4")
+    # Escolher um ou outro:
+    #my_device = CameraDevice()
+    my_device = VideoDevice("data/road.mp4")
 
-    cena1 = CameraOutputScene(cameraDevice, nome="Imagem Bruta")
-    cena2 = ClassifiedOutputScene(cameraDevice, nome="Imagem Processada")
+    cena1 = CameraOutputScene(my_device, nome="Imagem Bruta")
+    cena2 = ClassifiedOutputScene(my_device, nome="Imagem Processada")
     minha_janela.imagem1.setScene(cena1)
     minha_janela.imagem2.setScene(cena2)
 

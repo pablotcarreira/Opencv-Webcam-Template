@@ -7,13 +7,17 @@ Como exemplo, incluí um classificador de imagens que detecta carros.
 
 Utiliza:
 
-* Python3
+* Python 3.5
 * Qt5
-* OpenCV3 (acredito que fuincione com o 2).
+* OpenCV 2.4 (funciona com o 3.x também).
 * PyQt5
 
+== Utilização:
+* Utilize a classe `CameraDevice` ou `VideoDevice` para representar uma webcam ou um vídeo de um arquivo.
+* Herde da classe `OutputScene` e reimplemente o método `process_data` para realizar o processamento.
 
-
+Verifique o código para melhor entendimento, o arquivo main.py contêm as principais classes e o exemplo está contido na
+seção `if __name__ == '__main__':` e na classe `ClassifiedOutputScene`
 
 == Alterando a interface:
 Caso deseje alterar a interface com o Qt Designer (arquivo gui.ui) lembre-se de

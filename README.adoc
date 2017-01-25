@@ -1,0 +1,23 @@
+= Interface Gráfica e estrutura em Python/OpenCV para processamento de dados da webcam
+
+Fornece uma interface com duas saídas, uma com a imagem bruta e outra com a imagem processada.
+O app contêm pontos onde a imgem da webcam pode ser interceptada em processada.
+
+Como exemplo, incluí um classificador de imagens que detecta carros.
+
+Utiliza:
+
+* Python3
+* Qt5
+* OpenCV3 (acredito que fuincione com o 2).
+* PyQt5
+
+
+
+
+== Alterando a interface:
+Caso deseje alterar a interface com o Qt Designer (arquivo gui.ui) lembre-se de
+gerar o arquivo gui.py com o pyuic5 rodando o comando:
+
+    pyuic5 gui.ui -o gui.py
+

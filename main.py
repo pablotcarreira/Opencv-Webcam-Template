@@ -55,6 +55,7 @@ class CameraDevice(QtCore.QObject):
     @QtCore.pyqtSlot()
     def _queryFrame(self):
         ok, frame = self._cameraDevice.read()
+        print(frame)
         image_array = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         height, width, depth = image_array.shape
         pixmap = QPixmap(QImage(image_array, width, height, QImage.Format_RGB888))
@@ -76,6 +77,8 @@ class VideoDevice(CameraDevice):
         super(CameraDevice, self).__init__(parent)
         self.mirrored = mirrored
         self._cameraDevice = cv2.VideoCapture(video_src)
+        if self._cameraDevice.isOpened() is False:
+            raise RuntimeError("Error opening the video file.")
         self._timer = QtCore.QTimer(self)
         self._timer.timeout.connect(self._queryFrame)
         self._timer.setInterval(1000 / fps)
@@ -105,7 +108,6 @@ class ClassifiedOutputScene(CameraOutputScene):
         super(ClassifiedOutputScene, self).__init__(cameraDevice, nome)
         self.retangulos = []
         self.classificador = cv2.CascadeClassifier('data/cars.xml')
-
 
         if not self.classificador:
             raise(IOError("Classificador não carregado."))

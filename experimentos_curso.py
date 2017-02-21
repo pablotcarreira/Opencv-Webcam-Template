@@ -42,7 +42,6 @@ class CameraDevice(QtCore.QObject):
     # original newFrame = QtCore.pyqtSignal(cv2.iplimage)
     newFrame = QtCore.pyqtSignal(np.ndarray)
 
-
     def __init__(self, cameraId=0, mirrored=False, parent=None, fps=25):
         super(CameraDevice, self).__init__(parent)
         self.mirrored = mirrored
@@ -58,7 +57,6 @@ class CameraDevice(QtCore.QObject):
         """Captura um frame da camera ou do video."""
         ok, frame = self._camera_device.read()
         image_array = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-
         self.newFrame.emit(image_array)
 
     @property
@@ -71,6 +69,7 @@ class CameraDevice(QtCore.QObject):
             self._timer.stop()
         else:
             self._timer.start()
+
 
 class VideoDevice(CameraDevice):
     def __init__(self, video_src, mirrored=False, parent=None, fps=25):
@@ -93,10 +92,10 @@ class CameraOutputScene(QGraphicsScene):
         self.frame_graphics_item = QGraphicsPixmapItem()
         self.addItem(self.frame_graphics_item)
         self._cameraDevice = cameraDevice
-        self._cameraDevice.newFrame.connect(self._onNewFrame)
+        self._cameraDevice.newFrame.connect(self._on_new_frame)
         self.addText(nome)
 
-    def _draw_rectangulo(self, frame):
+    def _draw_retangulo(self, frame):
         # Pode ser definido pen e brush.
         altura, largura, bandas = frame.shape
         print("Largura {}  Altura {}  Bandas {}".format(largura, altura, bandas))
@@ -123,10 +122,10 @@ class CameraOutputScene(QGraphicsScene):
         CameraOutputScene.rectangle = [x, y, tamanho_retangulo, tamanho_retangulo]
 
     @QtCore.pyqtSlot(np.ndarray)
-    def _onNewFrame(self, array):
+    def _on_new_frame(self, array):
         # Desenha o retangulo no primeiro frame recebido.
         if not self.rectangle:
-            self._draw_rectangulo(array)
+            self._draw_retangulo(array)
         # normal
         height, width, depth = array.shape
         pixmap = QPixmap(QImage(array, width, height, QImage.Format_RGB888))
@@ -144,14 +143,13 @@ class ClassifiedOutputScene(CameraOutputScene):
         super(ClassifiedOutputScene, self).__init__(cameraDevice, nome)
         self.classificador = keras.models.load_model("model_otimizado")
         self.previsoes = []
-        #self.numero = self.addText("n", QFont("Arial", 50))
 
-        #self.numero.setPos(200, 200)
-
-
+        self.numero = self.addText("n", QFont("Arial", 50))
+        self.numero.setDefaultTextColor(QColor(255, 255, 0))
+        self.numero.setPos(420, 420)
 
     @QtCore.pyqtSlot(np.ndarray)
-    def _onNewFrame(self, array):
+    def _on_new_frame(self, array):
         # Caso nao tenha o retangulo passa.
         if not self.rectangle:
             return
@@ -176,7 +174,10 @@ class ClassifiedOutputScene(CameraOutputScene):
         self.previsoes.append(previsao[0])
         if len(self.previsoes) == 10:
             print(self.previsoes)
-            print(np.bincount(self.previsoes).argmax())
+            numero = np.bincount(self.previsoes).argmax()
+            print(numero)
+            self.numero.setPlainText(str(numero))
+
             self.previsoes = []
 
 

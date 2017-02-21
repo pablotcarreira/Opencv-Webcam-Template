@@ -6,6 +6,7 @@ import keras
 import numpy as np
 from PyQt5 import QtCore
 from PyQt5.QtGui import QColor
+from PyQt5.QtGui import QFont
 from PyQt5.QtGui import QImage
 from PyQt5.QtGui import QPen
 from PyQt5.QtGui import QPixmap
@@ -141,8 +142,11 @@ class ClassifiedOutputScene(CameraOutputScene):
     """Uma cena classificada."""
     def __init__(self, cameraDevice, nome="Classificada"):
         super(ClassifiedOutputScene, self).__init__(cameraDevice, nome)
+        self.classificador = keras.models.load_model("model_otimizado")
+        self.previsoes = []
+        #self.numero = self.addText("n", QFont("Arial", 50))
 
-        self.classificador = keras.models.load_model("model_mnist")
+        #self.numero.setPos(200, 200)
 
 
 
@@ -151,18 +155,14 @@ class ClassifiedOutputScene(CameraOutputScene):
         # Caso nao tenha o retangulo passa.
         if not self.rectangle:
             return
-
         x, y, w, h = self.rectangle
         mini_w, mini_h = 28, 28
-
         corte_array = array[y:y + h, x:x + w ]
         gray_array = cv2.cvtColor(corte_array, cv2.COLOR_RGB2GRAY)
-
         mini_array = cv2.resize(gray_array, (mini_w, mini_h), cv2.INTER_LINEAR)
         mini_array = np.invert(mini_array)
-        mini_array = cv2.threshold(mini_array, 200, 255, cv2.THRESH_BINARY)[1]
+        mini_array = cv2.threshold(mini_array, 150, 255, cv2.THRESH_BINARY)[1]
         big_out = cv2.resize(mini_array, (480, 480), cv2.INTER_LINEAR)
-
 
         #cortada
         height, width, depth = corte_array.shape
@@ -172,9 +172,12 @@ class ClassifiedOutputScene(CameraOutputScene):
         previsao = self.classificador.predict_classes([mini_array.reshape(-1, 784), ], verbose=0)
         #proba = self.classificador.predict_proba([mini_array.reshape(-1, 784), ])
 
-        print(previsao)
-
-
+        # Coloca nas previsoes e caso atinja a contagem, mostra o resultado.
+        self.previsoes.append(previsao[0])
+        if len(self.previsoes) == 10:
+            print(self.previsoes)
+            print(np.bincount(self.previsoes).argmax())
+            self.previsoes = []
 
 
 if __name__ == '__main__':

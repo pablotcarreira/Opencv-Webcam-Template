@@ -1,4 +1,10 @@
 # Pablo Carreira - 16/01/17
+
+import os
+os.environ['KERAS_BACKEND'] = 'theano'
+os.environ['THEANO_FLAGS'] = 'mode=FAST_RUN,device=gpu0,floatX=float32'
+
+
 import sys
 
 import cv2
@@ -141,7 +147,7 @@ class ClassifiedOutputScene(CameraOutputScene):
     """Uma cena classificada."""
     def __init__(self, cameraDevice, nome="Classificada"):
         super(ClassifiedOutputScene, self).__init__(cameraDevice, nome)
-        self.classificador = keras.models.load_model("model_otimizado")
+        self.classificador = keras.models.load_model("model_rn_profunda")
         self.previsoes = []
 
         self.numero = self.addText("n", QFont("Arial", 50))

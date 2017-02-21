@@ -160,7 +160,7 @@ class ClassifiedOutputScene(CameraOutputScene):
 
         mini_array = cv2.resize(gray_array, (mini_w, mini_h), cv2.INTER_LINEAR)
         mini_array = np.invert(mini_array)
-        mini_array = cv2.threshold(mini_array, 150, 255, cv2.THRESH_BINARY)[1]
+        mini_array = cv2.threshold(mini_array, 200, 255, cv2.THRESH_BINARY)[1]
         big_out = cv2.resize(mini_array, (480, 480), cv2.INTER_LINEAR)
 
 

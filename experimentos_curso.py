@@ -2,6 +2,7 @@
 import sys
 
 import cv2
+import keras
 import numpy as np
 from PyQt5 import QtCore
 from PyQt5.QtGui import QColor
@@ -38,7 +39,7 @@ from gui import Ui_MainWindow
 
 class CameraDevice(QtCore.QObject):
     # original newFrame = QtCore.pyqtSignal(cv2.iplimage)
-    newFrame = QtCore.pyqtSignal(QPixmap, np.ndarray)
+    newFrame = QtCore.pyqtSignal(np.ndarray)
 
 
     def __init__(self, cameraId=0, mirrored=False, parent=None, fps=25):
@@ -56,9 +57,8 @@ class CameraDevice(QtCore.QObject):
         """Captura um frame da camera ou do video."""
         ok, frame = self._camera_device.read()
         image_array = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        height, width, depth = image_array.shape
-        pixmap = QPixmap(QImage(image_array, width, height, QImage.Format_RGB888))
-        self.newFrame.emit(pixmap, image_array)
+
+        self.newFrame.emit(image_array)
 
     @property
     def paused(self):
@@ -85,6 +85,8 @@ class VideoDevice(CameraDevice):
 
 
 class CameraOutputScene(QGraphicsScene):
+    rectangle = None
+
     def __init__(self, cameraDevice, nome="Sem nome"):
         super(CameraOutputScene, self).__init__()
         self.frame_graphics_item = QGraphicsPixmapItem()
@@ -93,9 +95,42 @@ class CameraOutputScene(QGraphicsScene):
         self._cameraDevice.newFrame.connect(self._onNewFrame)
         self.addText(nome)
 
-    @QtCore.pyqtSlot(QPixmap, np.ndarray)
-    def _onNewFrame(self, frame, array):
-        self.frame_graphics_item.setPixmap(frame)
+    def _draw_rectangulo(self, frame):
+        # Pode ser definido pen e brush.
+        altura, largura, bandas = frame.shape
+        print("Largura {}  Altura {}  Bandas {}".format(largura, altura, bandas))
+        pen = QPen()
+        pen.setWidth(4)
+        pen.setColor(QColor(0, 255, 0))
+        tamanho_retangulo = 100
+
+        # posicao do retangulo.
+
+        # Centralizado
+        #x = int((largura / 2) - (tamanho_retangulo/2))
+        #y = int((altura / 2) - (tamanho_retangulo / 2))
+
+        # Canto inferior esquerdo.
+        #x = 0
+        #y = altura - tamanho_retangulo
+
+        # Canto inferior direito.
+        x = largura - tamanho_retangulo
+        y = altura - tamanho_retangulo
+
+        self.addRect(x, y, tamanho_retangulo, tamanho_retangulo, pen)
+        CameraOutputScene.rectangle = [x, y, tamanho_retangulo, tamanho_retangulo]
+
+    @QtCore.pyqtSlot(np.ndarray)
+    def _onNewFrame(self, array):
+        # Desenha o retangulo no primeiro frame recebido.
+        if not self.rectangle:
+            self._draw_rectangulo(array)
+        # normal
+        height, width, depth = array.shape
+        pixmap = QPixmap(QImage(array, width, height, QImage.Format_RGB888))
+
+        self.frame_graphics_item.setPixmap(pixmap)
         self.process_data(array)
 
     def process_data(self, array: np.ndarray):
@@ -103,35 +138,42 @@ class CameraOutputScene(QGraphicsScene):
 
 
 class ClassifiedOutputScene(CameraOutputScene):
+    """Uma cena classificada."""
     def __init__(self, cameraDevice, nome="Classificada"):
         super(ClassifiedOutputScene, self).__init__(cameraDevice, nome)
-        self.retangulos = []
-        self.classificador = cv2.CascadeClassifier('data/cars.xml')
 
-        if not self.classificador:
-            raise(IOError("Classificador não carregado."))
+        self.classificador = keras.models.load_model("model_mnist")
 
 
-    def _draw_rectangulo(self, matches):
-        # Pode ser definido pen e brush.
-        # This convenience; function is equivalent to calling
-        # addRect(QRectF(x, y, w, h), pen, brush)
 
-        for old in self.retangulos:
-            self.removeItem(old)
-
-        for item in matches:
-            pen = QPen()
-            pen.setWidth(4)
-            pen.setColor(QColor(0, 255, 0))
-            self.retangulos.append(self.addRect(item[0], item[1], item[2], item[3], pen))
-
-    def process_data(self, frame_array: np.ndarray):
-        newRegions = detectRegionsOfInterest(frame_array.copy(), self.classificador)
-        if newRegions is False:
+    @QtCore.pyqtSlot(np.ndarray)
+    def _onNewFrame(self, array):
+        # Caso nao tenha o retangulo passa.
+        if not self.rectangle:
             return
-        else:
-            self._draw_rectangulo(newRegions)
+
+        x, y, w, h = self.rectangle
+        mini_w, mini_h = 28, 28
+
+        corte_array = array[y:y + h, x:x + w ]
+        gray_array = cv2.cvtColor(corte_array, cv2.COLOR_RGB2GRAY)
+
+        mini_array = cv2.resize(gray_array, (mini_w, mini_h), cv2.INTER_LINEAR)
+        mini_array = np.invert(mini_array)
+        mini_array = cv2.threshold(mini_array, 150, 255, cv2.THRESH_BINARY)[1]
+        big_out = cv2.resize(mini_array, (480, 480), cv2.INTER_LINEAR)
+
+
+        #cortada
+        height, width, depth = corte_array.shape
+        pixmap = QPixmap(QImage(big_out, 480, 480, QImage.Format_Grayscale8))
+
+        self.frame_graphics_item.setPixmap(pixmap)
+        previsao = self.classificador.predict_classes([mini_array.reshape(-1, 784), ], verbose=0)
+        #proba = self.classificador.predict_proba([mini_array.reshape(-1, 784), ])
+
+        print(previsao)
+
 
 
 

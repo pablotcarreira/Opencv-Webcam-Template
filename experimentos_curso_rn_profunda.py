@@ -2,11 +2,9 @@
 
 import os
 os.environ['KERAS_BACKEND'] = 'theano'
-os.environ['THEANO_FLAGS'] = 'mode=FAST_RUN,device=gpu0,floatX=float32'
-
+# os.environ['THEANO_FLAGS'] = 'mode=FAST_RUN,device=gpu0,floatX=float32'
 
 import sys
-
 import cv2
 import keras
 import numpy as np
@@ -20,28 +18,7 @@ from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWidgets import QGraphicsPixmapItem
 from PyQt5.QtWidgets import QGraphicsScene
 from PyQt5.QtWidgets import QMainWindow
-
-from detect import detectRegionsOfInterest
 from gui import Ui_MainWindow
-
-
-# https://rafaelbarreto.wordpress.com/2011/08/27/a-pyqt-widget-for-opencv-camera-preview/
-# http://pyqt.sourceforge.net/Docs/PyQt5/signals_slots.html
-# https://github.com/andrewssobral/vehicle_detection_haarcascades
-# https://pythonspot.com/car-tracking-with-cascades/
-# https://deeplearning4j.org/compare-dl4j-torch7-pylearn.html
-
-# Caffe
-# https://docs.google.com/presentation/d/1UeKXVgRvvxg9OUdh_UiC5G71UMscNPlvArsWER41PsU/edit#slide=id.g129385c8da_651_21
-
-# CARROS!!
-# http://christopher5106.github.io/deep/learning/2015/09/04/Deep-learning-tutorial-on-Caffe-Technology.html
-
-# http://adilmoujahid.com/posts/2016/06/introduction-deep-learning-python-caffe/
-
-# Fonte de dados:
-# ImageNet
-
 
 
 class CameraDevice(QtCore.QObject):
@@ -183,7 +160,6 @@ class ClassifiedOutputScene(CameraOutputScene):
             numero = np.bincount(self.previsoes).argmax()
             print(numero)
             self.numero.setPlainText(str(numero))
-
             self.previsoes = []
 
 

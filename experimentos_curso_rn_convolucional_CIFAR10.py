@@ -1,7 +1,7 @@
 # Pablo Carreira - 16/01/17
 
 import os
-#os.environ['KERAS_BACKEND'] = 'theano'
+#   os.environ['KERAS_BACKEND'] = 'theano'
 #os.environ['THEANO_FLAGS'] = 'mode=FAST_RUN,device=gpu0,floatX=float32'
 
 
@@ -20,54 +20,9 @@ from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWidgets import QGraphicsPixmapItem
 from PyQt5.QtWidgets import QGraphicsScene
 from PyQt5.QtWidgets import QMainWindow
-from detect import detectRegionsOfInterest
+
+from devices import CameraDevice
 from gui import Ui_MainWindow
-
-
-class CameraDevice(QtCore.QObject):
-    # original newFrame = QtCore.pyqtSignal(cv2.iplimage)
-    newFrame = QtCore.pyqtSignal(np.ndarray)
-
-    def __init__(self, cameraId=0, mirrored=False, parent=None, fps=25):
-        super(CameraDevice, self).__init__(parent)
-        self.mirrored = mirrored
-        self._camera_device = cv2.VideoCapture(cameraId)
-        self._camera_device.open(cameraId)
-        self._timer = QtCore.QTimer(self)
-        self._timer.timeout.connect(self._queryFrame)
-        self._timer.setInterval(1000 / fps)
-        self.paused = False
-
-    @QtCore.pyqtSlot()
-    def _queryFrame(self):
-        """Captura um frame da camera ou do video."""
-        ok, frame = self._camera_device.read()
-        image_array = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        self.newFrame.emit(image_array)
-
-    @property
-    def paused(self):
-        return not self._timer.isActive()
-
-    @paused.setter
-    def paused(self, p):
-        if p:
-            self._timer.stop()
-        else:
-            self._timer.start()
-
-
-class VideoDevice(CameraDevice):
-    def __init__(self, video_src, mirrored=False, parent=None, fps=25):
-        super(CameraDevice, self).__init__(parent)
-        self.mirrored = mirrored
-        self._cameraDevice = cv2.VideoCapture(video_src)
-        if self._cameraDevice.isOpened() is False:
-            raise RuntimeError("Error opening the video file.")
-        self._timer = QtCore.QTimer(self)
-        self._timer.timeout.connect(self._queryFrame)
-        self._timer.setInterval(1000 / fps)
-        self.paused = False
 
 
 class CameraOutputScene(QGraphicsScene):
@@ -78,7 +33,7 @@ class CameraOutputScene(QGraphicsScene):
         self.frame_graphics_item = QGraphicsPixmapItem()
         self.addItem(self.frame_graphics_item)
         self._cameraDevice = cameraDevice
-        self._cameraDevice.newFrame.connect(self._on_new_frame)
+        self._cameraDevice.new_frame.connect(self._on_new_frame)
         self.addText(nome)
 
     def _draw_retangulo(self, frame):

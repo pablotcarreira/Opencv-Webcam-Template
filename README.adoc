@@ -1,5 +1,7 @@
 = Interface Gráfica e estrutura em Python/OpenCV para processamento de dados da webcam
 
+**Interfaces para o curso RNC:** Vejam os arquivos experimentos_curso_rn...
+
 Fornece uma interface com duas saídas, uma com a imagem bruta e outra com a imagem processada.
 O app contêm pontos onde a imgem da webcam pode ser interceptada em processada.
 

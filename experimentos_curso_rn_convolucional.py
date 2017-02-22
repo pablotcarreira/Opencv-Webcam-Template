@@ -1,8 +1,8 @@
 # Pablo Carreira - 16/01/17
 
 import os
-os.environ['KERAS_BACKEND'] = 'theano'
-os.environ['THEANO_FLAGS'] = 'mode=FAST_RUN,device=gpu0,floatX=float32'
+#os.environ['KERAS_BACKEND'] = 'theano'
+#os.environ['THEANO_FLAGS'] = 'mode=FAST_RUN,device=gpu0,floatX=float32'
 
 
 import sys
@@ -147,7 +147,7 @@ class ClassifiedOutputScene(CameraOutputScene):
     """Uma cena classificada."""
     def __init__(self, cameraDevice, nome="Classificada"):
         super(ClassifiedOutputScene, self).__init__(cameraDevice, nome)
-        self.classificador = keras.models.load_model("model_rn_profunda")
+        self.classificador = keras.models.load_model("model_mnist_convulacional")
         self.previsoes = []
 
         self.numero = self.addText("n", QFont("Arial", 50))
@@ -161,19 +161,23 @@ class ClassifiedOutputScene(CameraOutputScene):
             return
         x, y, w, h = self.rectangle
         mini_w, mini_h = 28, 28
-        corte_array = array[y:y + h, x:x + w ]
-        gray_array = cv2.cvtColor(corte_array, cv2.COLOR_RGB2GRAY)
-        mini_array = cv2.resize(gray_array, (mini_w, mini_h), cv2.INTER_LINEAR)
-        mini_array = np.invert(mini_array)
-        mini_array = cv2.threshold(mini_array, 150, 255, cv2.THRESH_BINARY)[1]
-        big_out = cv2.resize(mini_array, (480, 480), cv2.INTER_LINEAR)
+
+        #corte_array = array[y:y + h, x:x + w ]
+
+        gray_array = cv2.cvtColor(array, cv2.COLOR_RGB2GRAY)
+        #mini_array = cv2.resize(gray_array, (mini_w, mini_h), cv2.INTER_LINEAR)
+
+        negativo_array = np.invert(gray_array)
+        binary_array = cv2.threshold(negativo_array, 150, 255, cv2.THRESH_BINARY)[1]
+        #big_out = cv2.resize(mini_array, (480, 480), cv2.INTER_LINEAR)
 
         #cortada
-        height, width, depth = corte_array.shape
-        pixmap = QPixmap(QImage(big_out, 480, 480, QImage.Format_Grayscale8))
+        #height, width, depth = corte_array.shape
 
+        pixmap = QPixmap(QImage(binary_array, array.shape[1], array.shape[0], QImage.Format_Grayscale8))
         self.frame_graphics_item.setPixmap(pixmap)
-        previsao = self.classificador.predict_classes([mini_array.reshape(-1, 784), ], verbose=0)
+
+        previsao = self.classificador.predict_classes([array, ], verbose=0)
         #proba = self.classificador.predict_proba([mini_array.reshape(-1, 784), ])
 
         # Coloca nas previsoes e caso atinja a contagem, mostra o resultado.

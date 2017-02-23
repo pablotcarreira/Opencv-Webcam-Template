@@ -39,7 +39,7 @@ class CameraDevice(QtCore.QObject):
 
 
 class VideoDevice(CameraDevice):
-    def __init__(self, video_src, mirrored=False, parent=None, fps=25):
+    def __init__(self, video_src, mirrored=False, parent=None, fps=15):
         super(CameraDevice, self).__init__(parent)
         self.mirrored = mirrored
         self._cameraDevice = cv2.VideoCapture(video_src)

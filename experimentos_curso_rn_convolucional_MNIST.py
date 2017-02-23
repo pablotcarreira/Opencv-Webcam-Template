@@ -21,9 +21,6 @@ from devices import CameraDevice
 from gui import Ui_MainWindow
 
 
-
-
-
 class ClassifiedOutputScene(CameraOutputScene):
     """Uma cena classificada."""
     def __init__(self, cameraDevice, nome="Classificada"):
